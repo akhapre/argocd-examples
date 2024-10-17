@@ -1,114 +1,71 @@
----
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: upgrade-sql-schema
-  annotations:
-    argocd.argoproj.io/hook: PreSync
-spec:
-  template:
-    spec:
-      containers:
-        - name: upgrade-sql-schema
-          image: alpine:latest
-          command: ["sleep", "5"]
-      restartPolicy: Never
----
-apiVersion: apps/v1
-kind: ReplicaSet
-metadata:
-  name: backend
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      tier: backend
-  template:
-    metadata:
-      labels:
-        tier: backend
-    spec:
-      containers:
-        - name: main
-          image: nginx:latest
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: backend
-spec:
-  selector:
-    tier: backend
-  ports:
-    - protocol: TCP
-      port: 8080
-      targetPort: 8080
----
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: maint-page-up
+  name: rollout-manager-job-sleep-300
   annotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
   template:
     spec:
       containers:
-        - name: page-up
+        - name: rollout-manager-job-sleep-300
           image: alpine:latest
-          command: ["sleep", "2"]
+          command: ["sleep", "300"]
       restartPolicy: Never
   backoffLimit: 0
 ---
 apiVersion: apps/v1
 kind: ReplicaSet
 metadata:
-  name: frontend
+  name: dispatcher
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "0"  
 spec:
   replicas: 1
   selector:
     matchLabels:
-      tier: frontend
+      tier: dispatcher
   template:
     metadata:
       labels:
-        tier: frontend
+        tier: dispatcher
     spec:
       containers:
-        - name: main
+        - name: dispatcher
           image: nginx:latest
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: frontend
+  name: dispatcher
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "0"  
 spec:
   selector:
-    tier: frontend
+    tier: dispatcher
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 80
+      port: 8080
+      targetPort: 8080
 ---
-apiVersion: batch/v1
-kind: Job
+apiVersion: apps/v1
+kind: ReplicaSet
 metadata:
-  name: maint-page-down
+  name: provisioner-a
   annotations:
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      tier: provisioner-a
   template:
+    metadata:
+      labels:
+        tier: provisioner-a
     spec:
       containers:
-        - name: page-down
-          image: alpine:latest
-          command: ["sleep", "2"]
-      restartPolicy: Never
+        - name: provisioner-a
+          image: nginx:latest
