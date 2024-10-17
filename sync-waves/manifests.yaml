@@ -12,7 +12,7 @@ spec:
       containers:
         - name: rollout-manager-job-sleep-300
           image: alpine:latest
-          command: ["echo \"Starting rollout manager job at $(date +\"%Y-%m-%d %H:%M:%S\")\";for i in {1..10}; do echo $i;sleep 5;done;echo \"Ending rollout manager job at $(date +\"%Y-%m-%d %H:%M:%S\")\";"]
+          command: ["sleep", "60"]
       restartPolicy: Never
   backoffLimit: 0
 ---
