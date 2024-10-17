@@ -12,7 +12,7 @@ spec:
       containers:
         - name: rollout-manager-job-sleep-300
           image: alpine:latest
-          command: ["sleep", "60"]
+          command: ["exit", "0"]
       restartPolicy: Never
   backoffLimit: 0
 ---
